@@ -7,23 +7,27 @@ overlapping observed dates**. This is Andrew's first pivot method for the class
 project's synthetic DNS data. Each result is an investigative lead with evidence;
 it does not establish common ownership or maliciousness.
 
-## Run from the project root
+## Run from `andrew-working/`
 
 Use **Python 3.11 or newer** (verified with Python 3.11.4). Everything uses the
 standard library; there are no packages to install or setup steps beyond having
-Python available. Run these commands from the **repository root**, the parent
-of this `pivot/` directory.
+Python available. Run these commands from **`andrew-working/`**, the parent
+of this `pivot/` directory. From the shared repository root, first run:
+
+```sh
+cd andrew-working
+```
 
 Run the reproducible demo with **mock filter labels**:
 
 ```sh
 python3 -m pivot.ip_coresidency accountcoast.com \
-  --data-dir data_seeding/seed-data-no-ground-truth \
+  --data-dir ../seed-data_no-ground-truth \
   --labels examples/mock_infra_labels.json \
   --output output/pivot_results.jsonl
 ```
 
-The command creates the output directory and replaces the output file. It reports
+The command creates the Git-ignored output directory and replaces the output file. It reports
 one result for `docslink.com`. Inspect the complete JSONL record:
 
 ```sh

@@ -10,20 +10,24 @@ Answer scope and design questions directly. A request for analysis or agent conf
 
 ## Project references
 
+This directory is Andrew's workspace inside the shared repository. Run its CLI
+and tests from `andrew-working/`. Shared schemas and datasets live one level up;
+planning documents live in this directory's `docs/` folder.
+
 Read the references relevant to the task:
 
-- [working/overview.md](working/overview.md): the team's current synthetic-data PoC and estimated work distribution.
-- [data_seeding/data-format.md](data_seeding/data-format.md): shared input/output contract, format version 0.1.
-- [data_seeding/data-format-walkthrough.md](data_seeding/data-format-walkthrough.md): meanings of observations, source types, and lifecycle features.
-- [working/proposal.md](working/proposal.md): original research motivation and broader real-data vision. Distinguish that vision from the current implementation scope.
-- [working/AI_overview.md](working/AI_overview.md): proposed roles, methods, and schedule; these are not evidence that teammates agreed to a particular allocation.
-- [working/pivot_engine_scope.md](working/pivot_engine_scope.md): implementation recommendations and integration decisions; treat it as a guide rather than a new team contract.
+- [docs/overview.md](docs/overview.md): the team's current synthetic-data PoC and estimated work distribution.
+- [data-format.md](../data-format.md): shared input/output contract, format version 0.1.
+- [data-format-walkthrough.md](../data-format-walkthrough.md): meanings of observations, source types, and lifecycle features.
+- [docs/proposal.md](docs/proposal.md): original research motivation and broader real-data vision. Distinguish that vision from the current implementation scope.
+- [docs/AI_overview.md](docs/AI_overview.md): proposed roles, methods, and schedule; these are not evidence that teammates agreed to a particular allocation.
+- [docs/pivot_engine_scope.md](docs/pivot_engine_scope.md): implementation recommendations and integration decisions; treat it as a guide rather than a new team contract.
 
 Apply the user's latest instructions. Preserve the shared file format; explain and coordinate any necessary contract change rather than silently changing it.
 
 ## Data and integration boundaries
 
-Develop the pivot engine against `data_seeding/seed-data-no-ground-truth/`. Its inputs are:
+Develop the pivot engine against `../seed-data_no-ground-truth/` when running from `andrew-working/`. Its inputs are:
 
 - `resolutions.jsonl`: domain, A/AAAA/NS/MX type, value, first/last seen dates, and forward/passive source.
 - `infra.json`: infrastructure metadata, including ASN and distinct-domain count. Its raw `label` is always `unknown`.
@@ -60,7 +64,7 @@ Andrew's coding requirements:
 - Maintain a Markdown guide explaining the algorithm, file responsibilities, exact setup/run/test commands, output evidence, score meaning, and limitations. Verify its commands against the implementation.
 - Keep verification focused on observable behavior and important edge cases; avoid elaborate test infrastructure and tests that merely repeat implementation details.
 
-Reviewed skill recommendations and their intended use are in [working/skills_recommendations.md](working/skills_recommendations.md). These are recommendations, not installed capabilities or prerequisites. Use relevant available skills selectively; Andrew's scope and simplicity requirements take precedence over generic tooling suggestions. The first implementation task is [working/tasks/001-ip-coresidency.md](working/tasks/001-ip-coresidency.md).
+Reviewed skill recommendations and their intended use are in [docs/skills_recommendations.md](docs/skills_recommendations.md). These are recommendations, not installed capabilities or prerequisites. Use relevant available skills selectively; Andrew's scope and simplicity requirements take precedence over generic tooling suggestions. The first implementation task is [docs/tasks/001-ip-coresidency.md](docs/tasks/001-ip-coresidency.md).
 
 Preserve these correctness properties:
 

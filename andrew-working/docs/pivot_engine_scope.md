@@ -19,13 +19,13 @@ Your engine answers: **"Given this seed, what else is related, and what observat
 Source priority matters:
 
 - [overview.md](overview.md) describes the team's overall goal and lists Rick, Suraj, and Andrew under pivoting, with different approaches suggested.
-- [data-format.md](../data_seeding/data-format.md) specifies the delivered file formats, including the three pivot method names and the required output fields.
+- [data-format.md](../../data-format.md) specifies the delivered file formats, including the three pivot method names and the required output fields.
 - [AI_overview.md](AI_overview.md) proposes detailed roles and a schedule. Its one-person-per-role allocation differs from the team overview, so individual ownership still needs agreement.
 - [proposal.md](proposal.md) describes the original research motivation and a broader real-data vision. The team overview defines the current synthetic-data PoC; distinguish the two scopes when planning implementation.
 
 ## What is available now
 
-The dataset in `data_seeding/seed-data-no-ground-truth/` contains:
+The shared dataset in `seed-data_no-ground-truth/` at the repository root (`../seed-data_no-ground-truth/` when running from `andrew-working/`) contains:
 
 | File | What your engine uses it for |
 |---|---|
@@ -36,7 +36,7 @@ The dataset in `data_seeding/seed-data-no-ground-truth/` contains:
 
 Inspection found 43,360 observations, 5,138 domain metadata entries, and 3,284 infrastructure entries. Of those domains, 4,551 have DNS observations. All observations reference existing domain and infrastructure metadata; the distinct-domain counts match the observed records. All raw infrastructure labels are `unknown`, as specified.
 
-The folder does **not** currently contain the shared `load_data.py`, the filter's `output/infra_labels.json`, or filter/pivot/evaluation implementation code. The initial dataset is available; this handoff alone does not establish that the complete simulator can be regenerated.
+The initial handoff did not contain implementation code. Task 001 has since added `andrew-working/load_data.py` and the domain-seed IP co-residency baseline; see the [workspace guide](../README.md). Actual filter output and evaluation code remain integration dependencies. The data handoff alone does not establish that the complete simulator can be regenerated.
 
 Use the dataset without ground truth for engine development. Actor configuration files are simulator inputs, and `ground_truth.json` belongs exclusively to evaluation. Neither is an input to the pivot engine.
 

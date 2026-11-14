@@ -165,7 +165,7 @@ def main():
     """Load only observations, infrastructure and explicit labels; write JSONL."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("seed", help="domain seed (IP seeds are not supported)")
-    parser.add_argument("--data-dir", type=Path, default=Path("data_seeding/seed-data-no-ground-truth"))
+    parser.add_argument("--data-dir", type=Path, default=Path("../seed-data_no-ground-truth"))
     parser.add_argument("--labels", type=Path, required=True, help="filter output or explicit mock labels")
     parser.add_argument("--output", type=Path, default=Path("output/pivot_results.jsonl"))
     args = parser.parse_args()

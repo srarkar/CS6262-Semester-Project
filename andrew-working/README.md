@@ -1,4 +1,8 @@
-# DNS infrastructure pivoting project
+# Andrew's DNS pivoting workspace
+
+This folder contains Andrew's implementation and notes inside the shared
+repository. Shared schemas and datasets are in the parent directory. Run this
+workspace's Python commands from `andrew-working/`.
 
 This five-person class project explores how related infrastructure can be found
 in synthetic DNS history. The full goal is to start with a domain or IP, discover
@@ -26,13 +30,13 @@ Andrew's current contribution is pivoting. The team overview also lists Rick and
 Suraj under pivoting; individual method ownership still needs agreement.
 Completing the IP baseline does not complete the shared engine.
 
-## Repository map
+## Workspace map
 
-### Root files
+### Workspace files
 
 | Path | Purpose |
 | --- | --- |
-| [README.md](README.md) | Repository overview, file map, run commands, and recommended next steps. |
+| [README.md](README.md) | Workspace overview, file map, run commands, and recommended next steps. |
 | [AGENTS.md](AGENTS.md) | Instructions for coding agents: project scope, Andrew's coding preferences, data boundaries, and verification requirements. |
 | [load_data.py](load_data.py) | Shared JSON/JSONL reads and deterministic JSONL writes. Components should use this module for shared file I/O. |
 
@@ -48,28 +52,27 @@ generated results.
 | [pivot/ip_coresidency.py](pivot/ip_coresidency.py) | Finds domains sharing an exact eligible IPv4/IPv6 address during overlapping dates. Contains the importable method and CLI. |
 | [tests/test_ip_coresidency.py](tests/test_ip_coresidency.py) | Standard-library tests using controlled observations and temporary files, including interval gaps, duplicate sources, filtering, IPv6, aggregation, and CLI behavior. |
 | [examples/mock_infra_labels.json](examples/mock_infra_labels.json) | Hand-selected demo eligibility for one IP. Uses the filter's output schema and retains an explicit `MOCK` reason. It is not a classifier or a maliciousness finding. |
-| [output/pivot_results.jsonl](output/pivot_results.jsonl) | Generated method results: one JSON object per seed/candidate/method, containing `seed`, `candidate`, `method`, `evidence`, and `score`. The demo replaces this file. |
+| `output/pivot_results.jsonl` | Generated method results: one JSON object per seed/candidate/method, containing `seed`, `candidate`, `method`, `evidence`, and `score`. The demo creates or replaces this file; generated output is ignored by Git. |
 
 The filter's future `output/infra_labels.json` will tell the pivot which
 infrastructure is eligible. It is currently absent. Only explicit `candidate`
 labels permit expansion; missing labels and noise labels are skipped.
 
-### `data_seeding/`
+### Shared schemas and data in `../`
 
-Contains the delivered synthetic datasets, original archives, and the shared data
+The shared repository root contains the delivered synthetic datasets and data
 contract. Use the directory **without ground truth** for pivot/filter development.
-Keep the delivered data intact.
+Keep the delivered data intact and use the shared copies rather than duplicating
+them inside this workspace.
 
 | Path | Purpose |
 | --- | --- |
-| [data-format.md](data_seeding/data-format.md) | Shared version 0.1 contract for observations, infrastructure, registration history, filter labels, and pivot results. This defines the integration format. |
-| [data-format-walkthrough.md](data_seeding/data-format-walkthrough.md) | Plain-language explanation of DNS observations, forward/passive sources, infrastructure metadata, and domain lifecycle features. |
-| `seed-data-no-ground-truth/` | Development inputs available to the filter and pivot methods; its four files are described below. |
-| `seed-data-with-ground-truth/` | Dataset delivery for evaluation and simulation context. Ground truth is reserved for evaluation; actor profiles are simulator inputs and must not become pivot features. |
-| `seed-data-6262-no-ground-truth.zip` | Original archived delivery of the development dataset. An extracted copy is already available. |
-| `seed-data-6262-with-ground-truth.zip` | Original archived delivery with evaluation/simulation material. It is not a pivot development input. |
+| [data-format.md](../data-format.md) | Shared version 0.1 contract for observations, infrastructure, registration history, filter labels, and pivot results. This defines the integration format. |
+| [data-format-walkthrough.md](../data-format-walkthrough.md) | Plain-language explanation of DNS observations, forward/passive sources, infrastructure metadata, and domain lifecycle features. |
+| `../seed-data_no-ground-truth/` | Development inputs available to the filter and pivot methods; its four files are described below. |
+| `../seed-data_with-ground-truth/` | Dataset delivery for evaluation and simulation context. Ground truth is reserved for evaluation; actor profiles are simulator inputs and must not become pivot features. |
 
-Files in `data_seeding/seed-data-no-ground-truth/`:
+Files in `../seed-data_no-ground-truth/`:
 
 | File | Contents and use |
 | --- | --- |
@@ -82,7 +85,7 @@ The shared contract also describes `ground_truth.json` and `actors/*.json`.
 Only evaluation may read the former. Actor profiles describe how the simulator
 plants behavior; they must not be used to design or tune the pivot.
 
-### `working/`
+### `docs/`
 
 Planning, research context, task specifications, and implementation records live
 here. These documents have different roles; proposed assignments and older
@@ -90,12 +93,12 @@ inventories are not the current implementation status.
 
 | Path | Purpose |
 | --- | --- |
-| [overview.md](working/overview.md) | Team's synthetic-data proof of concept, overall pipeline, and estimated work distribution. |
-| [proposal.md](working/proposal.md) | Original research motivation, references, and broader real-data vision. That vision extends beyond the current synthetic-data implementation. |
-| [AI_overview.md](working/AI_overview.md) | Proposed roles, methods, and schedule. It does not establish that teammates accepted a particular allocation. |
-| [pivot_engine_scope.md](working/pivot_engine_scope.md) | Pivot design and integration guidance, method descriptions, and remaining decisions. Its initial inventory predates the implemented IP baseline. |
-| [skills_recommendations.md](working/skills_recommendations.md) | Optional reviewed skill suggestions and their intended use. They are not installed capabilities or dependencies. |
-| [tasks/001-ip-coresidency.md](working/tasks/001-ip-coresidency.md) | First implementation task, acceptance checks, and appended completion record with actual commands and outcomes. |
+| [overview.md](docs/overview.md) | Team's synthetic-data proof of concept, overall pipeline, and estimated work distribution. |
+| [proposal.md](docs/proposal.md) | Original research motivation, references, and broader real-data vision. That vision extends beyond the current synthetic-data implementation. |
+| [AI_overview.md](docs/AI_overview.md) | Proposed roles, methods, and schedule. It does not establish that teammates accepted a particular allocation. |
+| [pivot_engine_scope.md](docs/pivot_engine_scope.md) | Pivot design and integration guidance, method descriptions, and remaining decisions. |
+| [skills_recommendations.md](docs/skills_recommendations.md) | Optional reviewed skill suggestions and their intended use. They are not installed capabilities or dependencies. |
+| [tasks/001-ip-coresidency.md](docs/tasks/001-ip-coresidency.md) | First implementation task, acceptance checks, and appended completion record with actual commands and outcomes. |
 
 Python may generate `__pycache__/` folders beside source files during execution.
 They contain interpreter bytecode caches, not project source or input data.
@@ -104,13 +107,17 @@ They contain interpreter bytecode caches, not project source or input data.
 
 Use **Python 3.11 or newer**; the baseline was verified with Python 3.11.4.
 It uses only the standard library, so no packages need installing. Run these
-commands from the repository root.
+commands from `andrew-working/`. From the shared repository root, first run:
+
+```sh
+cd andrew-working
+```
 
 Run the demo with **mock filter labels**:
 
 ```sh
 python3 -m pivot.ip_coresidency accountcoast.com \
-  --data-dir data_seeding/seed-data-no-ground-truth \
+  --data-dir ../seed-data_no-ground-truth \
   --labels examples/mock_infra_labels.json \
   --output output/pivot_results.jsonl
 ```

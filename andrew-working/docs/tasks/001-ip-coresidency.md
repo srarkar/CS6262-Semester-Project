@@ -2,15 +2,15 @@
 
 ## Outcome
 
-Implement Andrew's first pivot method: given a domain seed and explicit filter labels, find other domains that used the same eligible IPv4/IPv6 address during overlapping observed dates. Produce explained results in the team's JSONL format and a Markdown guide that a teammate can follow from the project root.
+Implement Andrew's first pivot method: given a domain seed and explicit filter labels, find other domains that used the same eligible IPv4/IPv6 address during overlapping observed dates. Produce explained results in the team's JSONL format and a Markdown guide that a teammate can follow from `andrew-working/`.
 
-Read `AGENTS.md`, `data_seeding/data-format.md`, and the relevant sections of `data_seeding/data-format-walkthrough.md`. Preserve the supplied dataset. Read only `data_seeding/seed-data-no-ground-truth/` for development data. Do not inspect actor profiles or ground truth.
+Paths in this task are relative to `andrew-working/`. Read `AGENTS.md`, `../data-format.md`, and the relevant sections of `../data-format-walkthrough.md`. Preserve the supplied dataset. Read only `../seed-data_no-ground-truth/` for development data. Do not inspect actor profiles or ground truth.
 
 ## Code style
 
 Use the minimum amount of clear Python needed for this task, preferably standard library only. Keep descriptive names and direct control flow. Add functions only for useful operations; avoid class-based engine frameworks, generic registries, database layers, extra pivot methods, or speculative configuration systems. Concise docstrings and comments should explain assumptions and the reasons for non-obvious decisions. Do not trade readability for fewer lines.
 
-The reviewed skills in `working/skills_recommendations.md` are optional guidance, not installed prerequisites. Follow the user's simplicity requirements over their broader tooling examples.
+The reviewed skills in `docs/skills_recommendations.md` are optional guidance, not installed prerequisites. Follow the user's simplicity requirements over their broader tooling examples.
 
 ## Required behavior
 
@@ -27,7 +27,7 @@ The reviewed skills in `working/skills_recommendations.md` are optional guidance
 Keep the file layout small; adapt it if an existing implementation appears before work begins:
 
 - `load_data.py`: shared JSON/JSONL I/O needed by this method.
-- `pivot/ip_coresidency.py`: the method and its CLI; use `python3 -m pivot.ip_coresidency` from the project root, or another equally simple documented entry point.
+- `pivot/ip_coresidency.py`: the method and its CLI; use `python3 -m pivot.ip_coresidency` from `andrew-working/`, or another equally simple documented entry point.
 - `tests/test_ip_coresidency.py`: focused standard-library tests with controlled observations.
 - `examples/mock_infra_labels.json`: clearly identified demo-only filter output using the existing labels schema.
 - `README.md`: the understanding and running guide.
@@ -42,7 +42,7 @@ Explain why time overlap and infrastructure filtering matter, how duplicate obse
 
 - Controlled cases verify overlapping and non-overlapping IP use, duplicate-source observations, disjoint gaps, noise/missing labels, IPv6, self-exclusion, and empty results. Include aggregation/determinism checks where useful. Avoid elaborate fixtures and tests that only mirror implementation details.
 - In the supplied observations, `accountcoast.com` and `docslink.com` share `165.80.147.127` from June 12 through June 22, 2025: **11 inclusive days**. With that IP explicitly marked `candidate` in the mock labels, the demo should emit `docslink.com` with that explanation. This is an observable relationship; its actor ownership is unknown.
-- The demo and test commands succeed from the project root, output parses as the contracted JSONL, and no delivered data files are modified.
+- The demo and test commands succeed from `andrew-working/`, output parses as the contracted JSONL, and no delivered data files are modified.
 - The final handoff states the implementation files, exact successful commands, observed demo outcome, and limitations. Do not claim precision/recall or real APT detection accuracy.
 
 ## Completion record
@@ -58,9 +58,11 @@ and CLI, explicit candidate-only eligibility, inclusive interval unions with
 source provenance, one-hop expansion, deterministic aggregation, and explained
 JSONL output. The README documents the interface, algorithm, score, errors,
 commands, actual output, and integration boundaries. No skills were installed;
-`AGENTS.md` and `working/skills_recommendations.md` were not changed.
+`AGENTS.md` and the skill recommendations were not changed during that implementation.
 
-Commands actually run from the project root:
+The commands below were verified during implementation. Their data paths were
+updated on November 13 for the shared repository layout; run them from
+`andrew-working/`.
 
 ```sh
 python3 --version
@@ -81,7 +83,7 @@ JSONL output replacement, and CLI errors for missing/malformed files and labels.
 
 ```sh
 python3 -m pivot.ip_coresidency accountcoast.com \
-  --data-dir data_seeding/seed-data-no-ground-truth \
+  --data-dir ../seed-data_no-ground-truth \
   --labels examples/mock_infra_labels.json \
   --output output/pivot_results.jsonl
 ```
@@ -110,7 +112,7 @@ example equals the actual emitted record, and the importable method's output
 equals the CLI's parsed output.
 
 ```sh
-shasum -a 256 data_seeding/seed-data-no-ground-truth/resolutions.jsonl data_seeding/seed-data-no-ground-truth/infra.json data_seeding/seed-data-no-ground-truth/domains.json data_seeding/seed-data-no-ground-truth/manifest.json
+shasum -a 256 ../seed-data_no-ground-truth/resolutions.jsonl ../seed-data_no-ground-truth/infra.json ../seed-data_no-ground-truth/domains.json ../seed-data_no-ground-truth/manifest.json
 ```
 
 Outcome: all four SHA-256 hashes matched the values recorded before
@@ -129,3 +131,22 @@ IP-seed semantics, combined ranking, and evaluation. This baseline uses the full
 synthetic observation history, has no historical cutoff mode, and makes no
 precision/recall or real APT detection claim. Per-method scores are heuristic
 temporal strengths, not calibrated probabilities.
+
+### Shared repository layout verified — November 13, 2026
+
+The implementation and notes now live in `andrew-working/`, with planning files
+under `docs/` and the shared datasets at the repository root. Run commands from
+`andrew-working/`; the default data directory is `../seed-data_no-ground-truth`.
+Generated results and Python caches are covered by the shared ignore rules.
+
+Verification: all 14 controlled tests passed, all local Markdown links resolved,
+and the four development dataset hashes still matched the table above. Running
+the demo without `--data-dir` verified the new default:
+
+```sh
+python3 -m pivot.ip_coresidency accountcoast.com \
+  --labels examples/mock_infra_labels.json \
+  --output output/pivot_results.jsonl
+```
+
+Outcome: one result for `docslink.com`, 12 inclusive overlap days, score 0.4.

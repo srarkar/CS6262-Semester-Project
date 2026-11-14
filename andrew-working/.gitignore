@@ -1,0 +1,4 @@
+# Python bytecode and generated pivot results.
+__pycache__/
+*.py[cod]
+/output/

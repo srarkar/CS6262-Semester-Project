@@ -1,0 +1,12 @@
+{
+  "infra": {
+    "dns107.ovh.net": {
+      "label": "candidate",
+      "confidence": 0.0,
+      "reasons": [
+        "MOCK eligibility for the NS/MX reuse demo; not a classifier or maliciousness finding"
+      ]
+    }
+  },
+  "domains": {}
+}

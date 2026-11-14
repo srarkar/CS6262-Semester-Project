@@ -36,7 +36,7 @@ The shared dataset in `seed-data_no-ground-truth/` at the repository root (`../s
 
 Inspection found 43,360 observations, 5,138 domain metadata entries, and 3,284 infrastructure entries. Of those domains, 4,551 have DNS observations. All observations reference existing domain and infrastructure metadata; the distinct-domain counts match the observed records. All raw infrastructure labels are `unknown`, as specified.
 
-The initial handoff did not contain implementation code. Task 001 has since added `andrew-working/load_data.py` and the domain-seed IP co-residency baseline; see the [workspace guide](../README.md). Actual filter output and evaluation code remain integration dependencies. The data handoff alone does not establish that the complete simulator can be regenerated.
+The initial handoff did not contain implementation code. Tasks 001 and 002 have since added `andrew-working/load_data.py` and the domain-seed IP co-residency and NS/MX reuse methods; see the [workspace guide](../README.md). Actual filter output and evaluation code remain integration dependencies. The data handoff alone does not establish that the complete simulator can be regenerated.
 
 Use the dataset without ground truth for engine development. Actor configuration files are simulator inputs, and `ground_truth.json` belongs exclusively to evaluation. Neither is an input to the pivot engine.
 

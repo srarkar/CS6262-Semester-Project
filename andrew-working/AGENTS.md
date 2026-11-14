@@ -66,6 +66,12 @@ Andrew's coding requirements:
 
 Reviewed skill recommendations and their intended use are in [docs/skills_recommendations.md](docs/skills_recommendations.md). These are recommendations, not installed capabilities or prerequisites. Use relevant available skills selectively; Andrew's scope and simplicity requirements take precedence over generic tooling suggestions. The first implementation task is [docs/tasks/001-ip-coresidency.md](docs/tasks/001-ip-coresidency.md).
 
+Domain-seed IP co-residency and NS/MX reuse are implemented. The second method's
+guide is [docs/ns_mx_reuse.md](docs/ns_mx_reuse.md), with its completion record in
+[docs/tasks/002-ns-mx-reuse.md](docs/tasks/002-ns-mx-reuse.md). Shared normalization,
+label validation, and interval helpers live in `pivot/common.py`; keep file I/O
+in `load_data.py`. IP seeds and combined ranking remain separate milestones.
+
 Preserve these correctness properties:
 
 - Keep disjoint observation intervals separate. Document the day-counting convention.

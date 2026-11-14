@@ -1,6 +1,7 @@
 # Temporal IP co-residency baseline
 
 See the [repository guide](../README.md) for the project map and next steps.
+For the second method, see [rare NS/MX reuse](../docs/ns_mx_reuse.md).
 
 Given a domain seed, find other domains that used the **same eligible IP on
 overlapping observed dates**. This is Andrew's first pivot method for the class
@@ -40,11 +41,12 @@ Run the controlled tests:
 python3 -m unittest discover -s tests -v
 ```
 
-The 14 tests cover inclusive overlap and non-overlap, disjoint gaps, duplicate
+The IP method's 14 tests cover inclusive overlap and non-overlap, disjoint gaps, duplicate
 observations and source dates, excluded/missing labels, IPv6, exact IP matching
 versus a shared ASN or block, aggregation and determinism, self-exclusion, empty
 results, missing metadata, and useful input/CLI errors. They use small fixtures
-and temporary files without evaluation data.
+and temporary files without evaluation data. The discovery command also runs
+12 NS/MX tests, for 26 tests in total.
 
 `--labels` is required. When the real filter is available, supply its
 `output/infra_labels.json` in place of the mock file. `--data-dir` and `--output`
@@ -59,7 +61,8 @@ Input errors occur before writing the output.
 | File | Responsibility |
 | --- | --- |
 | `load_data.py` | Shared UTF-8 JSON/JSONL reads and deterministic JSONL writes. |
-| `pivot/ip_coresidency.py` | Domain normalization, label checks, IP index, interval matching, evidence, score, and CLI. |
+| `pivot/ip_coresidency.py` | IP eligibility/index, interval matching, evidence, score, and CLI. |
+| `pivot/common.py` | Domain normalization, label checks, interval operations, and source descriptions shared with NS/MX reuse. |
 | `tests/test_ip_coresidency.py` | Standard-library behavioral and CLI tests with controlled data. |
 | `examples/mock_infra_labels.json` | Demo-only eligibility for `165.80.147.127`; all other infrastructure is ineligible. |
 | `output/pivot_results.jsonl` | Generated results in the shared output contract. |
@@ -171,9 +174,12 @@ not a noise classifier or a finding that the IP or domains are malicious.
 Actual filter output remains an integration dependency.
 
 This implements domain-seed IP co-residency on synthetic data. IP-seed semantics,
-NS/MX reuse, fingerprint matching, recursive discovery, combined ranking, and
+fingerprint matching, recursive discovery, combined ranking, and
 ground-truth accuracy evaluation remain separate work. There is no live scanning
 or historical cutoff mode: results use the whole supplied observation history.
 Any later historical experiment must apply its cutoff to observations, filter
 features, and infrastructure domain counts together. No precision, recall, or
 real APT detection accuracy is claimed.
+
+NS/MX reuse is implemented separately in `pivot/ns_mx_reuse.py`; it uses the same
+interval helpers and JSONL fields, with its own evidence and rarity score.

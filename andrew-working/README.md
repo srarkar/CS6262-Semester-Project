@@ -22,9 +22,9 @@ simulate -> filter noise -> pivot -> score -> evaluate/demo
 | --- | --- |
 | Data | Delivered synthetic DNS datasets and their shared format. Simulator implementation is not present here. |
 | Filter | Real filter output is not present. A small explicit mock labels file supports the demo. |
-| Pivot | Domain-seed temporal IP co-residency is implemented with a CLI, importable function, and 14 controlled tests. IP seeds and the other methods are pending. |
-| Score | The IP method supplies its own heuristic strength. Combining methods into a final ranking remains separate work. |
-| Evaluate/demo | A reproducible mock-label demo is available. Ground-truth accuracy evaluation is not implemented here. |
+| Pivot | Domain-seed temporal IP co-residency and rare NS/MX reuse are implemented with CLIs, importable functions, and 26 controlled tests. IP seeds and fingerprint matching are pending. |
+| Score | IP co-residency supplies a duration strength; NS/MX reuse supplies a rarity strength. Combining methods into a final ranking remains separate work. |
+| Evaluate/demo | Reproducible mock-label demos are available for both methods. Ground-truth accuracy evaluation is not implemented here. |
 
 Andrew's current contribution is pivoting. The team overview also lists Rick and
 Suraj under pivoting; individual method ownership still needs agreement.
@@ -50,9 +50,14 @@ generated results.
 | [pivot/README.md](pivot/README.md) | Detailed IP co-residency guide: algorithm, callable interface, evidence fields, score formula, actual output, errors, and limitations. |
 | [pivot/__init__.py](pivot/__init__.py) | Marks `pivot` as a Python package so methods can be imported and run as modules. |
 | [pivot/ip_coresidency.py](pivot/ip_coresidency.py) | Finds domains sharing an exact eligible IPv4/IPv6 address during overlapping dates. Contains the importable method and CLI. |
+| [pivot/ns_mx_reuse.py](pivot/ns_mx_reuse.py) | Finds domains sharing uncommon eligible NS/MX hosts during overlapping dates. Contains the importable method and CLI. |
+| [pivot/common.py](pivot/common.py) | Domain normalization, label validation, interval operations, and source descriptions shared by both methods. |
 | [tests/test_ip_coresidency.py](tests/test_ip_coresidency.py) | Standard-library tests using controlled observations and temporary files, including interval gaps, duplicate sources, filtering, IPv6, aggregation, and CLI behavior. |
+| [tests/test_ns_mx_reuse.py](tests/test_ns_mx_reuse.py) | Controlled NS/MX tests for rarity, matching, time windows, provenance, and CLI behavior. |
 | [examples/mock_infra_labels.json](examples/mock_infra_labels.json) | Hand-selected demo eligibility for one IP. Uses the filter's output schema and retains an explicit `MOCK` reason. It is not a classifier or a maliciousness finding. |
+| [examples/mock_ns_mx_labels.json](examples/mock_ns_mx_labels.json) | Explicit mock eligibility for the NS/MX demo's one shared host. |
 | `output/pivot_results.jsonl` | Generated method results: one JSON object per seed/candidate/method, containing `seed`, `candidate`, `method`, `evidence`, and `score`. The demo creates or replaces this file; generated output is ignored by Git. |
+| `output/ns_mx_results.jsonl` | Generated NS/MX demo results, using the same JSONL contract. |
 
 The filter's future `output/infra_labels.json` will tell the pivot which
 infrastructure is eligible. It is currently absent. Only explicit `candidate`
@@ -99,6 +104,8 @@ inventories are not the current implementation status.
 | [pivot_engine_scope.md](docs/pivot_engine_scope.md) | Pivot design and integration guidance, method descriptions, and remaining decisions. |
 | [skills_recommendations.md](docs/skills_recommendations.md) | Optional reviewed skill suggestions and their intended use. They are not installed capabilities or dependencies. |
 | [tasks/001-ip-coresidency.md](docs/tasks/001-ip-coresidency.md) | First implementation task, acceptance checks, and appended completion record with actual commands and outcomes. |
+| [ns_mx_reuse.md](docs/ns_mx_reuse.md) | NS/MX algorithm, API, rarity score, evidence fields, demo, and exact run commands. |
+| [tasks/002-ns-mx-reuse.md](docs/tasks/002-ns-mx-reuse.md) | Second implementation milestone and verification record. |
 
 Python may generate `__pycache__/` folders beside source files during execution.
 They contain interpreter bytecode caches, not project source or input data.
@@ -113,7 +120,7 @@ commands from `andrew-working/`. From the shared repository root, first run:
 cd andrew-working
 ```
 
-Run the demo with **mock filter labels**:
+Run IP co-residency with **mock filter labels**:
 
 ```sh
 python3 -m pivot.ip_coresidency accountcoast.com \
@@ -129,18 +136,34 @@ python3 -m json.tool --json-lines output/pivot_results.jsonl
 python3 -m unittest discover -s tests -v
 ```
 
-The demo emits `docslink.com` through `165.80.147.127`, with **12 inclusive
+Run the NS/MX demo with its own **mock filter labels**:
+
+```sh
+python3 -m pivot.ns_mx_reuse oceanoffice.com \
+  --data-dir ../seed-data_no-ground-truth \
+  --labels examples/mock_ns_mx_labels.json \
+  --max-domain-count 10 \
+  --output output/ns_mx_results.jsonl
+```
+
+It emits `quadravex.com` through NS host `dns107.ovh.net`, with **18 inclusive
+overlap days** and rarity score **0.5** (`1 / domain_count`, where the count is 2).
+See [the NS/MX guide](docs/ns_mx_reuse.md) for the algorithm and complete field
+definitions. All 26 tests run with the discovery command above.
+
+The IP demo emits `docslink.com` through `165.80.147.127`, with **12 inclusive
 overlap days** and score **0.4**. The task's 11-day example describes the forward
 observations alone; the passive observation extends the combined overlap through
 June 23, 2025. The [method guide](pivot/README.md) shows the complete record and
 explains the difference.
 
-This method takes one hop, preserves disjoint intervals, and deduplicates
-overlapping forward/passive days. Its score is the strongest shared IP's overlap
+Both methods take one hop, preserve disjoint intervals, and deduplicate
+overlapping forward/passive days. The IP score is the strongest shared IP's overlap
 days divided by 30, capped at 1, rather than a maliciousness probability.
 `--labels` is required; dataset and output paths are configurable. Unknown
 domains or domains without eligible observations produce an empty output;
-IP seeds are explicitly rejected for now.
+IP seeds are explicitly rejected for now. The methods' different score meanings
+need evaluation before they can be combined into a ranking.
 
 ## Recommended next steps for Andrew
 
@@ -158,9 +181,8 @@ IP seeds are explicitly rejected for now.
    existing contract, then pass it with `--labels` instead of the mock file.
    Check candidate/noise/missing-label behavior together. This removes the
    immediate mock-data dependency without changing the method.
-4. **Choose the next agreed pivot milestone.** If another method belongs to you,
-   NS/MX reuse is a natural next step: define uncommon-host thresholds and
-   preserve temporal evidence. If the team needs IP seeds first, agree on their
+4. **Choose the next agreed pivot milestone.** IP co-residency and NS/MX reuse
+   are implemented. If the team needs IP seeds next, agree on their
    candidate domains, applicable observation windows, and evidence before
    implementing them. Fingerprinting can follow using observable registrar,
    hosting ASN, aging, and lifespan features.

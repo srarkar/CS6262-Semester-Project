@@ -6,52 +6,7 @@ from ipaddress import ip_address
 from pathlib import Path
 
 from load_data import load_json, load_jsonl, write_jsonl
-
-
-def normalize_domain(domain):
-    """Match schema names while allowing surrounding whitespace and a DNS dot."""
-    if not isinstance(domain, str) or not domain.strip().rstrip("."):
-        raise ValueError("domain must be a nonempty string")
-    return domain.strip().rstrip(".").lower()
-
-
-def validate_labels(labels):
-    """Reject malformed filter output instead of silently allowing expansion."""
-    if not isinstance(labels, dict) or not isinstance(labels.get("infra"), dict):
-        raise ValueError("labels must contain an 'infra' object")
-    if not isinstance(labels.get("domains"), dict):
-        raise ValueError("labels must contain a 'domains' object (may be empty)")
-    allowed = ("candidate", "parking", "sinkhole", "cdn", "shared_hosting")
-    for value, entry in labels["infra"].items():
-        if not isinstance(entry, dict) or entry.get("label") not in allowed:
-            raise ValueError(f"labels infra[{value!r}] has an invalid label")
-        confidence = entry.get("confidence")
-        reasons = entry.get("reasons")
-        if type(confidence) not in (int, float) or not 0 <= confidence <= 1:
-            raise ValueError(f"labels infra[{value!r}] needs confidence in [0, 1]")
-        if not isinstance(reasons, list) or any(
-            not isinstance(reason, str) for reason in reasons
-        ):
-            raise ValueError(f"labels infra[{value!r}] needs a list of reasons")
-
-
-def merge_intervals(intervals):
-    """Union overlapping closed date intervals without bridging unobserved gaps."""
-    merged = []
-    for start, end in sorted(intervals):
-        if merged and start <= merged[-1][1]:
-            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
-        else:
-            merged.append((start, end))
-    return merged
-
-
-def describe_observations(observations):
-    """Retain exact source dates; a union must not imply earlier passive coverage."""
-    return [
-        {"first_seen": start.isoformat(), "last_seen": end.isoformat(), "source": source}
-        for start, end, source in sorted(set(observations))
-    ]
+from pivot.common import describe_observations, find_overlap_intervals, normalize_domain, validate_labels
 
 
 def find_ip_coresidents(seed, resolutions, infrastructure, labels):
@@ -116,20 +71,10 @@ def find_ip_coresidents(seed, resolutions, infrastructure, labels):
     evidence_by_candidate = {}
     for address in sorted(seed_ips):
         seed_observations = by_ip[address][seed_domain]
-        seed_intervals = merge_intervals([(start, end) for start, end, _ in seed_observations])
         for candidate, observations in sorted(by_ip[address].items()):
             if candidate == seed_domain:
                 continue
-            candidate_intervals = merge_intervals([(start, end) for start, end, _ in observations])
-            overlaps = []
-            for seed_start, seed_end in seed_intervals:
-                for candidate_start, candidate_end in candidate_intervals:
-                    start = max(seed_start, candidate_start)
-                    end = min(seed_end, candidate_end)
-                    if start <= end:
-                        overlaps.append((start, end))
-            # Union again so no observed day can contribute twice for an IP.
-            overlap_intervals = merge_intervals(overlaps)
+            overlap_intervals = find_overlap_intervals(seed_observations, observations)
             if not overlap_intervals:
                 continue
             overlap_days = sum((end - start).days + 1 for start, end in overlap_intervals)

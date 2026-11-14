@@ -1,0 +1,12 @@
+{
+  "infra": {
+    "165.80.147.127": {
+      "label": "candidate",
+      "confidence": 0.0,
+      "reasons": [
+        "MOCK eligibility for the co-residency demo; not a classifier or maliciousness finding"
+      ]
+    }
+  },
+  "domains": {}
+}

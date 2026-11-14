@@ -69,7 +69,7 @@ Evaluation can import `find_ip_coresidents` from `pivot.ip_coresidency` and call
 `find_ip_coresidents(seed, resolutions, infrastructure, labels)`. It returns a
 list of result dictionaries. Pass loaded records using `load_jsonl` and
 `load_json` from `load_data`; the pivot function performs no file I/O and does
-not modify its inputs.
++not modify its inputs.
 
 The CLI loads only `resolutions.jsonl`, `infra.json`, and the explicit labels
 file. This method does not need domain registration history or the manifest.

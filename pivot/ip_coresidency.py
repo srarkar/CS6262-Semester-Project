@@ -5,7 +5,7 @@ from datetime import date
 from ipaddress import ip_address
 from pathlib import Path
 
-from load_data import load_json, load_jsonl, write_jsonl
+from load_data import load_resolutions, load_infra, read_json, write_jsonl
 from pivot.common import describe_observations, find_overlap_intervals, normalize_domain, validate_labels
 
 
@@ -115,10 +115,10 @@ def main():
     parser.add_argument("--output", type=Path, default=Path("output/pivot_results.jsonl"))
     args = parser.parse_args()
     try:
-        labels = load_json(args.labels)
+        labels = read_json(args.labels)
         validate_labels(labels)
-        resolutions = load_jsonl(args.data_dir / "resolutions.jsonl")
-        infrastructure = load_json(args.data_dir / "infra.json")
+        resolutions = load_resolutions(args.data_dir)
+        infrastructure = load_infra(args.data_dir)
         results = find_ip_coresidents(args.seed, resolutions, infrastructure, labels)
         write_jsonl(args.output, results)
     except (OSError, ValueError) as error:

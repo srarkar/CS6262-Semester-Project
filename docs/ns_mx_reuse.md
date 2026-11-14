@@ -7,17 +7,13 @@ with evidence; sharing a server does not establish maliciousness or ownership.
 ## Run the demo
 
 Use Python 3.11 or newer. The implementation uses only the standard library.
-From the shared repository root, enter Andrew's workspace:
-
-```sh
-cd andrew-working
-```
+Run all commands below from the shared repository root.
 
 Run the supplied-data demo with explicitly **mocked filter eligibility**:
 
 ```sh
 python3 -m pivot.ns_mx_reuse oceanoffice.com \
-  --data-dir ../seed-data_no-ground-truth \
+  --data-dir data/seed-data_no-ground-truth \
   --labels examples/mock_ns_mx_labels.json \
   --max-domain-count 10 \
   --output output/ns_mx_results.jsonl
@@ -27,7 +23,7 @@ Inspect the complete evidence and run the tests:
 
 ```sh
 python3 -m json.tool --json-lines output/ns_mx_results.jsonl
-python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -p '*.py' -v
 ```
 
 The full suite contains 26 tests: 14 for IP co-residency and 12 for NS/MX reuse.
@@ -56,7 +52,7 @@ identify either domain as malicious, and actor ownership was not consulted.
 | `pivot/ns_mx_reuse.py` | Host eligibility, same-type matching, evidence, rarity score, and CLI |
 | `pivot/common.py` | Shared domain normalization, label validation, interval unions/intersections, and source descriptions |
 | `load_data.py` | Existing shared JSON/JSONL file I/O |
-| `tests/test_ns_mx_reuse.py` | Controlled NS/MX and CLI checks |
+| `tests/ns_mx_reuse.py` | Controlled NS/MX and CLI checks |
 | `examples/mock_ns_mx_labels.json` | Hand-selected eligibility for the demo |
 | `output/ns_mx_results.jsonl` | Generated demo results; ignored by Git |
 
@@ -115,9 +111,9 @@ direct comparison of the two scores. Neither score is a maliciousness probabilit
 ## Options, errors, and remaining work
 
 `--labels` is required and accepts real filter output in the existing schema when
-available. `--data-dir` defaults to `../seed-data_no-ground-truth`, the maximum
+available. `--data-dir` defaults to `data/seed-data_no-ground-truth`, the maximum
 domain count defaults to 10, and `--output` defaults to the contracted
-`output/pivot_results.jsonl`. Paths are relative to `andrew-working/`. The demo
+`output/pivot_results.jsonl`. Paths are relative to the repository root. The demo
 explicitly chooses `output/ns_mx_results.jsonl` so the two demos have separate
 files. Each successful run replaces its selected output.
 

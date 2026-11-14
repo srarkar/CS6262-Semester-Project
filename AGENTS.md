@@ -2,23 +2,24 @@
 
 ## Purpose and scope
 
-Help Andrew understand, implement, and verify his contribution to a five-person class project: a proof-of-concept APT infrastructure discovery tool using synthetic DNS history. Given a seed domain or IP, the pipeline finds related infrastructure, explains the evidence, ranks candidates, and measures accuracy against hidden ground truth.
+Help the team maintain a five-person class project: a proof-of-concept APT infrastructure discovery tool using synthetic DNS history. Given a seed domain or IP, the planned pipeline finds related infrastructure, explains the evidence, ranks candidates, and measures accuracy against hidden ground truth.
 
-The pipeline is `simulate -> filter noise -> pivot -> score -> evaluate/demo`. Andrew's current assignment is pivoting. The team overview also lists Rick and Suraj under pivoting; individual method ownership is unresolved. Implement the method requested in the current task. When implementation is requested without a chosen method, recommend temporal IP co-residency as the first milestone. Completing one method is distinct from completing the shared engine.
+The pipeline is `simulate -> filter noise -> pivot -> score -> evaluate/demo`. Andrew has completed the domain-seed IP co-residency and NS/MX reuse baselines and is handing off further implementation to teammates. The current task is layout alignment and handoff, not a new feature milestone. Follow subsequent explicit requests without assuming ownership of the remaining work. Completing these methods is distinct from completing the shared engine.
 
 Answer scope and design questions directly. A request for analysis or agent configuration is not a request to implement the whole pipeline.
 
 ## Project references
 
-This directory is Andrew's workspace inside the shared repository. Run its CLI
-and tests from `andrew-working/`. Shared schemas and datasets live one level up;
-planning documents live in this directory's `docs/` folder.
+Run the CLI and tests from the repository root. The layout follows `origin/main`
+at commit `4e09f47`: implementations in `pivot/`, tests in `tests/`, datasets in
+`data/`, and the evaluation placeholder in `evaluation/evaluate.py`. Planning
+documents and method notes live in `docs/`.
 
 Read the references relevant to the task:
 
 - [docs/overview.md](docs/overview.md): the team's current synthetic-data PoC and estimated work distribution.
-- [data-format.md](../data-format.md): shared input/output contract, format version 0.1.
-- [data-format-walkthrough.md](../data-format-walkthrough.md): meanings of observations, source types, and lifecycle features.
+- [data-format.md](data-format.md): shared input/output contract, format version 0.1.
+- [data-format-walkthrough.md](data-format-walkthrough.md): meanings of observations, source types, and lifecycle features.
 - [docs/proposal.md](docs/proposal.md): original research motivation and broader real-data vision. Distinguish that vision from the current implementation scope.
 - [docs/AI_overview.md](docs/AI_overview.md): proposed roles, methods, and schedule; these are not evidence that teammates agreed to a particular allocation.
 - [docs/pivot_engine_scope.md](docs/pivot_engine_scope.md): implementation recommendations and integration decisions; treat it as a guide rather than a new team contract.
@@ -27,7 +28,7 @@ Apply the user's latest instructions. Preserve the shared file format; explain a
 
 ## Data and integration boundaries
 
-Develop the pivot engine against `../seed-data_no-ground-truth/` when running from `andrew-working/`. Its inputs are:
+Develop the pivot engine against `data/seed-data_no-ground-truth/` from the repository root. Its inputs are:
 
 - `resolutions.jsonl`: domain, A/AAAA/NS/MX type, value, first/last seen dates, and forward/passive source.
 - `infra.json`: infrastructure metadata, including ASN and distinct-domain count. Its raw `label` is always `unknown`.
@@ -83,3 +84,6 @@ Preserve these correctness properties:
 - Use bounded expansion initially. Add recursive discovery only as part of the requested scope, with limits and provenance.
 
 For implementation changes, verify meaningful behavior with controlled fixtures covering overlap/non-overlap, excluded noise, duplicate sources, IPv6, and missing data, plus cases specific to the selected method. Keep ground-truth accuracy checks in evaluation. Report what changed, how to run it, what was actually verified, and any remaining integration dependency. Clearly identify results produced with mock labels.
+
+Main names the test modules `tests/ip_coresidency.py` and `tests/ns_mx_reuse.py`.
+Run `python3 -m unittest discover -s tests -p '*.py' -v` so both are discovered.

@@ -5,8 +5,9 @@
 Given a domain seed, find candidates sharing uncommon eligible NS or MX hosts
 during overlapping dates. Implement only this method, with an importable
 function, small CLI, explicit mock-label demo, controlled tests, and a Markdown
-guide. Keep all code, examples, and documentation in `andrew-working/` and use
-the shared development dataset one level up.
+guide. Paths in this completed task now reflect main's shared layout: code in
+`pivot/`, tests in `tests/`, examples in `examples/`, and documentation in `docs/`.
+Use `data/seed-data_no-ground-truth/` from the repository root.
 
 Keep the code direct and standard-library only. Reuse the existing loader and
 interval behavior through a small shared helper module rather than introducing
@@ -28,7 +29,7 @@ Do not read actor profiles or ground truth.
 
 ## Implementation and verification — November 14, 2026
 
-Added `pivot/ns_mx_reuse.py`, `tests/test_ns_mx_reuse.py`, and
+Added `pivot/ns_mx_reuse.py`, `tests/ns_mx_reuse.py`, and
 `examples/mock_ns_mx_labels.json`. Moved the existing naming, label, and interval
 helpers into `pivot/common.py`, including a shared overlap operation used by both
 methods. Updated the workspace and method guides. The code adds no dependencies.
@@ -39,10 +40,10 @@ see [the skill recommendations](../skills_recommendations.md). No skills or
 tooling were installed. Project scope and the user's minimal-code requirements
 take precedence over optional tooling examples.
 
-Commands run from `andrew-working/`:
+Commands use the current shared layout and run from the repository root:
 
 ```sh
-python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -p '*.py' -v
 ```
 
 Outcome: **26 tests passed**, including all 14 original IP tests and 12 NS/MX
@@ -53,7 +54,7 @@ determinism, input immutability, and CLI errors/output handling.
 
 ```sh
 python3 -m pivot.ns_mx_reuse oceanoffice.com \
-  --data-dir ../seed-data_no-ground-truth \
+  --data-dir data/seed-data_no-ground-truth \
   --labels examples/mock_ns_mx_labels.json \
   --max-domain-count 10 \
   --output output/ns_mx_results.jsonl

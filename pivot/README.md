@@ -8,22 +8,18 @@ overlapping observed dates**. This is Andrew's first pivot method for the class
 project's synthetic DNS data. Each result is an investigative lead with evidence;
 it does not establish common ownership or maliciousness.
 
-## Run from `andrew-working/`
+## Run from the repository root
 
 Use **Python 3.11 or newer** (verified with Python 3.11.4). Everything uses the
 standard library; there are no packages to install or setup steps beyond having
-Python available. Run these commands from **`andrew-working/`**, the parent
-of this `pivot/` directory. From the shared repository root, first run:
-
-```sh
-cd andrew-working
-```
+Python available. Run these commands from the **repository root**, the parent
+of this `pivot/` directory.
 
 Run the reproducible demo with **mock filter labels**:
 
 ```sh
 python3 -m pivot.ip_coresidency accountcoast.com \
-  --data-dir ../seed-data_no-ground-truth \
+  --data-dir data/seed-data_no-ground-truth \
   --labels examples/mock_infra_labels.json \
   --output output/pivot_results.jsonl
 ```
@@ -38,7 +34,7 @@ python3 -m json.tool --json-lines output/pivot_results.jsonl
 Run the controlled tests:
 
 ```sh
-python3 -m unittest discover -s tests -v
+python3 -m unittest discover -s tests -p '*.py' -v
 ```
 
 The IP method's 14 tests cover inclusive overlap and non-overlap, disjoint gaps, duplicate
@@ -47,6 +43,8 @@ versus a shared ASN or block, aggregation and determinism, self-exclusion, empty
 results, missing metadata, and useful input/CLI errors. They use small fixtures
 and temporary files without evaluation data. The discovery command also runs
 12 NS/MX tests, for 26 tests in total.
+The explicit `-p '*.py'` pattern includes main's test filenames, which do not
+start with `test`.
 
 `--labels` is required. When the real filter is available, supply its
 `output/infra_labels.json` in place of the mock file. `--data-dir` and `--output`
@@ -63,7 +61,7 @@ Input errors occur before writing the output.
 | `load_data.py` | Shared UTF-8 JSON/JSONL reads and deterministic JSONL writes. |
 | `pivot/ip_coresidency.py` | IP eligibility/index, interval matching, evidence, score, and CLI. |
 | `pivot/common.py` | Domain normalization, label checks, interval operations, and source descriptions shared with NS/MX reuse. |
-| `tests/test_ip_coresidency.py` | Standard-library behavioral and CLI tests with controlled data. |
+| `tests/ip_coresidency.py` | Standard-library behavioral and CLI tests with controlled data. |
 | `examples/mock_infra_labels.json` | Demo-only eligibility for `165.80.147.127`; all other infrastructure is ineligible. |
 | `output/pivot_results.jsonl` | Generated results in the shared output contract. |
 

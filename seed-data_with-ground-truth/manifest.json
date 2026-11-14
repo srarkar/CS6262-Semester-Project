@@ -1,0 +1,19 @@
+{
+ "counts": {
+  "domains": 5138,
+  "domains_with_records": 4551,
+  "infra": 3284,
+  "resolutions": 43360,
+  "resolutions_forward": 26987,
+  "resolutions_passive": 16373
+ },
+ "format_version": "0.1",
+ "params": {
+  "benign": 5000,
+  "crimeware": 40,
+  "n_actor_configs": 2
+ },
+ "seed": 6262,
+ "world_end": "2025-12-31",
+ "world_start": "2022-01-01"
+}

@@ -119,11 +119,15 @@ def main():
     try:
         resolutions = load_resolutions(args.data_dir)
         infrastructure = load_infra(args.data_dir)
-        labels = read_json(args.labels)
+        try:
+            labels = read_json(args.labels)
+        except ValueError as error:
+            raise ValueError(f"{args.labels}: invalid JSON: {error}") from error
         results = find_ns_mx_reuse(args.seed, resolutions, infrastructure, labels, args.max_domain_count)
         write_jsonl(args.output, results)
     except (OSError, ValueError) as error:
-        parser.error(str(error))
+        message = str(error).replace(": bad JSON:", ": invalid JSON:")
+        parser.error(message)
     print(f"Wrote {len(results)} result(s) to {args.output} (labels: {args.labels})")
 
 

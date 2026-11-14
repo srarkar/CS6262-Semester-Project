@@ -1,3 +1,4 @@
+
 """Controlled behavioral checks; no actor profiles or evaluation data are used."""
 
 import json
@@ -7,7 +8,7 @@ import sys
 import tempfile
 import unittest
 
-from load_data import load_jsonl, write_jsonl
+from load_data import iter_jsonl, write_jsonl
 from pivot.ip_coresidency import find_ip_coresidents
 
 
@@ -191,7 +192,7 @@ class CliTests(unittest.TestCase):
     def test_success_and_empty_results_replace_output(self):
         result = self.run_cli(seed="Seed.Example.")
         self.assertEqual(result.returncode, 0, result.stderr)
-        output = load_jsonl(self.output)
+        output = list(iter_jsonl(self.output))
         self.assertEqual(len(output), 1)
         self.assertEqual(output[0]["seed"], "Seed.Example.")
         self.assertEqual(output[0]["candidate"], "peer.example")

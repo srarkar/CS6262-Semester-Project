@@ -1,3 +1,4 @@
+
 """Controlled NS/MX behavior and CLI checks without evaluation data."""
 
 from copy import deepcopy
@@ -8,7 +9,7 @@ import sys
 import tempfile
 import unittest
 
-from load_data import load_jsonl, write_jsonl
+from load_data import iter_jsonl, write_jsonl
 from pivot.ns_mx_reuse import find_ns_mx_reuse
 
 
@@ -178,7 +179,7 @@ class CliTests(unittest.TestCase):
     def test_success_threshold_and_empty_output(self):
         result = self.run_cli(seed="Seed.Example.")
         self.assertEqual(result.returncode, 0, result.stderr)
-        records = load_jsonl(self.output)
+        records = list(iter_jsonl(self.output))
         self.assertEqual(records[0]["seed"], "Seed.Example.")
         self.assertEqual(records[0]["candidate"], "peer.example")
         self.assertEqual(records[0]["method"], "ns_mx_reuse")

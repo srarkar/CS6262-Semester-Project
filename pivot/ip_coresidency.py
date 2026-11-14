@@ -115,14 +115,18 @@ def main():
     parser.add_argument("--output", type=Path, default=Path("output/pivot_results.jsonl"))
     args = parser.parse_args()
     try:
-        labels = read_json(args.labels)
+        try:
+            labels = read_json(args.labels)
+        except ValueError as error:
+            raise ValueError(f"{args.labels}: invalid JSON: {error}") from error
         validate_labels(labels)
         resolutions = load_resolutions(args.data_dir)
         infrastructure = load_infra(args.data_dir)
         results = find_ip_coresidents(args.seed, resolutions, infrastructure, labels)
         write_jsonl(args.output, results)
     except (OSError, ValueError) as error:
-        parser.error(str(error))
+        message = str(error).replace(": bad JSON:", ": invalid JSON:")
+        parser.error(message)
     print(f"Wrote {len(results)} result(s) to {args.output} (labels: {args.labels})")
 
 

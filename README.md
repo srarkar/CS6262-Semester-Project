@@ -26,7 +26,8 @@ The structure follows `origin/main` at commit `4e09f47`. The former
 | [tests/ns_mx_reuse.py](tests/ns_mx_reuse.py) | 12 controlled NS/MX tests, using main's filename |
 | `data/seed-data_no-ground-truth/` | Shared development observations and metadata |
 | `data/seed-data_with-ground-truth/` | Evaluation/simulation delivery; ground truth is reserved for evaluation |
-| [evaluation/evaluate.py](evaluation/evaluate.py) | Main's empty placeholder for the evaluation contributor |
+| [evaluation/evaluate.py](evaluation/evaluate.py) | Benchmark against ground truth; see the [evaluation guide](evaluation/README.md) |
+| [tests/evaluate.py](tests/evaluate.py) | 7 controlled evaluation tests |
 | `examples/` | Explicit mock labels for each method's demo |
 | `output/` | Generated JSONL results, ignored by Git |
 | [docs/overview.md](docs/overview.md) | Team's synthetic-data scope and estimated work distribution |

@@ -1,0 +1,25 @@
+{
+ "name": "SLATE_HERON",
+ "description": "Harder actor. Short aging, little IP reuse, hides about half its domains behind CDNs, mostly uses registrar-default name servers, but keeps reusing one custom mail server. Tests whether NS/MX and fingerprint pivots work when IP co-residency doesn't.",
+ "n_domains": 25,
+ "campaign_windows": [
+  {"start": "2023-02-01", "end": "2023-10-31"},
+  {"start": "2025-03-01", "end": "2025-08-31"}
+ ],
+ "registrars": {"Porkbun LLC": 4, "GoDaddy.com, LLC": 3, "Gandi SAS": 2},
+ "hosting_asns": {"16276": 4, "24940": 4, "63949": 2},
+ "ip_reuse_rate": 0.3,
+ "ipv6_rate": 0.5,
+ "cdn_fronting_rate": 0.45,
+ "aging_days": {"mean": 35, "std": 30},
+ "active_days": {"mean": 60, "std": 40},
+ "park_first_rate": 0.2,
+ "custom_ns": {"hosts": ["ns1.heron-resolve.com", "ns2.heron-resolve.com"], "rate": 0.15},
+ "custom_mx": {"hosts": ["mail.bulletin-relay.org"], "rate": 0.5},
+ "naming": {
+  "styles": {"lure": 4, "business": 3, "brandable": 2, "person": 1},
+  "words": ["gov", "news", "bulletin", "press", "ministry", "embassy", "visa", "conference", "summit", "report", "briefing", "policy", "forum", "daily"],
+  "tlds": {"com": 3, "org": 3, "net": 2, "info": 1, "online": 1}
+ },
+ "end_state": {"sinkhole": 0.15, "parking": 0.25, "abandon": 0.6}
+}

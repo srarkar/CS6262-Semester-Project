@@ -19,6 +19,9 @@ The structure follows `origin/main` at commit `4e09f47`. The former
 | Path | Purpose |
 | --- | --- |
 | [load_data.py](load_data.py) | Shared JSON/JSONL reads and deterministic JSONL writes |
+| [sim/simulate.py](sim/simulate.py) | Seed data generator; rebuilds both `data/seed-data_*` folders ([guide](sim/README.md)) |
+| `sim/actors/` | Planted APT profiles used by the generator |
+| [validate_data.py](validate_data.py) | Checks a dataset against the data format |
 | [pivot/ip_coresidency.py](pivot/ip_coresidency.py) | Domain-seed temporal IP co-residency and CLI |
 | [pivot/ns_mx_reuse.py](pivot/ns_mx_reuse.py) | Domain-seed rare NS/MX reuse and CLI |
 | [pivot/common.py](pivot/common.py) | Shared normalization, label checks, and date operations |
@@ -60,6 +63,11 @@ Both CLIs default to `data/seed-data_no-ground-truth`. Override `--data-dir` and
 `--output` as needed. Each successful run replaces its selected output file.
 The explicit test pattern is required because main's test filenames do not
 start with `test`.
+
+To regenerate or check the seed data, run `python3 sim/simulate.py` and
+`python3 validate_data.py`. With the defaults, the output is identical to the
+committed data. See the [generator guide](sim/README.md) for other seeds and
+scenarios.
 
 | Demo | Result | Observed overlap | Method strength |
 | --- | --- | --- | --- |

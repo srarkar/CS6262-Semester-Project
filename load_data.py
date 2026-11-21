@@ -25,7 +25,7 @@ OUTPUT_DIR = ROOT / "output"
 
 RRTYPES = ("A", "AAAA", "NS", "MX")
 SOURCES = ("passive", "forward")
-PIVOT_METHODS = ("ip_coresidency", "ns_mx_reuse", "fingerprint_match")
+PIVOT_METHODS = ("ip_coresidency", "ns_mx_reuse", "fingerprint_match", "temporal_behavior")
 FILTER_LABELS = ("parking", "sinkhole", "cdn", "shared_hosting", "candidate")
 
 

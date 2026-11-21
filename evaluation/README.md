@@ -8,6 +8,14 @@ This is the only stage that reads `ground_truth.json`. The pivots run on
 `data/seed-data_no-ground-truth/` and receive only observations, metadata, and
 filter labels.
 
+The selected implementation uses All-DNS temporal matching with the
+registration-period fingerprint fix. The [final handoff guide](../docs/final_handoff.md)
+records verified commands and results. The
+[fingerprint report](../docs/fingerprint_refinement.md) and
+[temporal experiment](../docs/temporal_refinement.md) preserve the measured
+before/after comparisons. `evaluation.summarize_worlds` checks and summarizes
+the archived temporal comparisons across three fresh worlds.
+
 ## Run from the repository root
 
 Python 3.11 or newer; standard library only.
@@ -17,8 +25,8 @@ python3 -m evaluation.evaluate
 python3 -m unittest discover -s tests -p '*.py' -v
 ```
 
-The first command takes about 45 seconds with the two methods on `main`. It
-prints a summary table per filter condition and writes to `output/eval/`
+The first command runs four methods and both combined rankings, prints a
+summary table per filter condition, and writes to `output/eval/`
 (Git-ignored, replaced on each run).
 
 | Option | Default | Meaning |
@@ -37,14 +45,14 @@ prints a summary table per filter condition and writes to `output/eval/`
    random sample of 100 observed benign domains, and every observed crimeware
    domain (40).
 2. **Filter conditions.** Each seed is run under:
-   - `no_filter`: every IP/NS/MX value is `candidate` (lower bound);
+   - `no_filter`: every IP/NS/MX value is `candidate` (unfiltered reference);
    - `perfect_filter`: only values whose ground-truth role is `actor`,
      `dedicated`, `self_hosted_ns`, or `self_hosted_mail` are `candidate`
-     (upper bound; must not be used to tune pivots);
+     (oracle control; must not be used to tune pivots);
    - `real_filter`: the file passed with `--labels`, if any.
 3. **Methods.** `ip_coresidency` and `ns_mx_reuse`, plus `fingerprint_match`
-   and `temporal_behavior` automatically when their modules are present (they
-   are on the `rickdev/pivoting` branch). Two combined rankings are added:
+   and `temporal_behavior`; all four modules are present. Temporal matching
+   uses A/AAAA/NS/MX timelines and ignores filter labels. Two combined rankings are added:
    - `combined_rrf`: reciprocal rank fusion, each candidate scoring
      `1 / (60 + rank)` per method, because method scores are on different scales;
    - `combined_max`: candidates ordered by their highest score from any method.
@@ -88,30 +96,29 @@ equally. Undefined values are left out.
 | `output/eval/per_seed.jsonl` | One row per condition, method, and seed with the metrics above |
 | `output/eval/summary.json` | Run configuration, unique-true-positive counts, and aggregated metrics |
 
-## Current results (`main` methods only)
+## Selected results and plotting
 
-Means over actor seeds, actors weighted equally:
+The [final handoff guide](../docs/final_handoff.md) contains the six-ranking
+results table. The selected checkpoint is `output/refinement/final-all-dns/`;
+its manifest explicitly identifies reused measurements from a byte-identical
+engine, evaluator, loader, and dataset.
 
-| Condition | Method | AP | P@10 | R@25 | Recall (observed) | Recall (reachable) | Avg results |
-|---|---|---|---|---|---|---|---|
-| no_filter | ip_coresidency | 0.012 | 0.051 | 0.019 | 0.058 | 0.326 | 138.7 |
-| no_filter | ns_mx_reuse | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.1 |
-| perfect_filter | ip_coresidency | 0.017 | 0.050 | 0.017 | 0.017 | 0.305 | 0.5 |
-| perfect_filter | ns_mx_reuse | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.0 |
+```sh
+python3 -m evaluation.plot_accuracy \
+  --eval-dir output/refinement/final-all-dns \
+  --output-dir output/refinement/final-all-dns/figures
+```
 
-The combined rankings equal `ip_coresidency` here because NS/MX returns almost
-nothing. Two observations, both from ground truth and therefore evaluation
-context, not tuning targets:
-
-- AMBER_KITE's own name servers are each used by 18 domains and its mail server
-  by 12, above the default `max_domain_count` of 10, so NS/MX never considers them.
-- SLATE_HERON's name servers are used by 3 domains each but produce no results,
-  so those domains' uses do not overlap in time.
+Plotting uses the existing Pandas and Matplotlib dependencies. For a new
+provenance-recorded benchmark, use `python3 -m evaluation.run_experiment` with
+a fresh `--output-dir`. Existing saved results need not be recomputed to redraw
+plots. Higher AP, precision, and recall are better; lower false-lead counts are
+better. Oracle filtering does not guarantee every metric increases.
 
 ## Limitations
 
 - Ground truth has two actors; results are not statistically strong.
 - Pivots accept domain seeds only and search one hop.
-- Threshold sweeps, forward vs. passive comparison, the CDN-fronted subgroup,
-  and plots are not implemented yet.
+- Threshold sweeps, forward vs. passive discovery timing, and the CDN-fronted
+  subgroup are not implemented. Plotting and paired comparisons are implemented.
 - Scores are heuristic evidence strengths, not probabilities of maliciousness.

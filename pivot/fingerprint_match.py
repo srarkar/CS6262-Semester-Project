@@ -9,41 +9,30 @@ from load_data import load_domains, load_infra, load_resolutions, read_json, wri
 from pivot.common import normalize_domain, validate_labels
 
 
-def _registration_at(metadata, observed_on):
-    """Return the registration period active at observed_on, or None."""
+def _registration_periods(metadata):
+    """Return valid periods in a stable order, including top-level-only records."""
     periods = metadata.get("registrations")
-    if isinstance(periods, list) and periods:
-        for period in periods:
-            if not isinstance(period, dict):
-                continue
-            registered = period.get("registered")
-            expired = period.get("expired")
-            if not isinstance(registered, str):
-                continue
-            try:
-                start = date.fromisoformat(registered)
-                end = date.fromisoformat(expired) if expired else None
-            except ValueError:
-                continue
-            observed = date.fromisoformat(observed_on)
-            if start <= observed and (end is None or observed <= end):
-                return period
-        return None
-
-    registered = metadata.get("registered")
-    if not isinstance(registered, str):
-        return None
-    try:
-        if date.fromisoformat(registered) <= date.fromisoformat(observed_on):
-            return {"registered": registered, "expired": None,
-                    "registrar": metadata.get("registrar")}
-    except ValueError:
-        pass
-    return None
+    if not isinstance(periods, list) or not periods:
+        periods = [metadata]
+    valid = set()
+    for period in periods:
+        if not isinstance(period, dict):
+            continue
+        try:
+            registered = date.fromisoformat(period.get("registered"))
+            expired = date.fromisoformat(period["expired"]) if period.get("expired") else None
+        except (TypeError, ValueError):
+            continue
+        if expired is not None and expired < registered:
+            continue
+        registrar = period.get("registrar")
+        registrar = registrar.strip().casefold() if isinstance(registrar, str) else None
+        valid.add((registered, expired, registrar))
+    return sorted(valid, key=lambda period: (period[0], period[1] or date.max, period[2] or ""))
 
 
-def _fingerprints(seed, resolutions, infrastructure, domains, labels):
-    """Build fingerprints using only candidate-labeled A/AAAA infrastructure."""
+def _fingerprints(resolutions, infrastructure, domains, labels):
+    """Build separate fingerprints per registration using eligible A/AAAA records."""
     validate_labels(labels)
     if not isinstance(infrastructure, dict) or not isinstance(domains, dict):
         raise ValueError("infra.json and domains.json must contain objects")
@@ -65,6 +54,7 @@ def _fingerprints(seed, resolutions, infrastructure, domains, labels):
                 eligible.setdefault(str(address), set()).add(str(asn).strip())
 
     by_domain = {}
+    periods_by_domain = {}
     for row_number, row in enumerate(resolutions, 1):
         if not isinstance(row, dict):
             raise ValueError(f"resolution {row_number}: expected an object")
@@ -86,33 +76,38 @@ def _fingerprints(seed, resolutions, infrastructure, domains, labels):
         asns = eligible.get(str(address))
         if not asns:
             continue
-        item = by_domain.setdefault(domain, {"first_ip_observation_start": first_seen, "asns": set()})
-        item["first_ip_observation_start"] = min(item["first_ip_observation_start"], first_seen)
-        item["asns"].update(asns)
+        if domain not in periods_by_domain:
+            metadata = domains.get(domain)
+            periods_by_domain[domain] = _registration_periods(metadata) if isinstance(metadata, dict) else []
+        for period in periods_by_domain[domain]:
+            registered, expired, _ = period
+            # An observation may cross owners or a registration gap. Only its
+            # intersection with this period contributes ASNs and first-use age.
+            start = max(first_seen, registered)
+            end = min(last_seen, expired) if expired is not None else last_seen
+            if start > end:
+                continue
+            item = by_domain.setdefault(domain, {}).setdefault(
+                period, {"first_ip_observation_start": start, "asns": set()})
+            item["first_ip_observation_start"] = min(item["first_ip_observation_start"], start)
+            item["asns"].update(asns)
 
     fingerprints = {}
-    for domain, item in by_domain.items():
-        metadata = domains.get(domain)
-        if not isinstance(metadata, dict):
-            continue
-        first_seen = item["first_ip_observation_start"].isoformat()
-        registration = _registration_at(metadata, first_seen)
-        if registration is None:
-            continue
-        try:
-            aging_days = (item["first_ip_observation_start"] - date.fromisoformat(registration["registered"])).days
-        except (KeyError, TypeError, ValueError):
-            continue
-        if aging_days < 0:
-            continue
-        registrar = registration.get("registrar")
-        fingerprints[domain] = {
-            "asns": item["asns"],
-            "first_ip_observation_start": first_seen,
-            "registrar": registrar.strip().casefold() if isinstance(registrar, str) else None,
-            "registration_date": registration["registered"],
-            "aging_days": aging_days,
-        }
+    for domain, episodes in by_domain.items():
+        fingerprints[domain] = []
+        for period in periods_by_domain[domain]:
+            item = episodes.get(period)
+            if item is None:
+                continue
+            registered, expired, registrar = period
+            fingerprints[domain].append({
+                "asns": item["asns"],
+                "first_ip_observation_start": item["first_ip_observation_start"].isoformat(),
+                "registrar": registrar,
+                "registration_date": registered.isoformat(),
+                "registration_expired": expired.isoformat() if expired is not None else None,
+                "aging_days": (item["first_ip_observation_start"] - registered).days,
+            })
     return fingerprints
 
 
@@ -121,7 +116,8 @@ def find_fingerprint_matches(seed, resolutions, infrastructure, domains, labels)
 
     The ASN is the pivot key. Registrar agreement and registration-to-first-IP-use
     age contribute to the heuristic score; scores are evidence strengths, not
-    probabilities. Registration history is evaluated at first observed IP use.
+    probabilities. All historical registration periods are searched separately;
+    each candidate retains its strongest complete period pair, with stable ties.
     """
     seed_domain = normalize_domain(seed)
     try:
@@ -131,40 +127,49 @@ def find_fingerprint_matches(seed, resolutions, infrastructure, domains, labels)
     else:
         raise ValueError("IP seeds are not supported; supply a domain seed")
 
-    fingerprints = _fingerprints(seed_domain, resolutions, infrastructure, domains, labels)
-    seed_fp = fingerprints.get(seed_domain)
-    if seed_fp is None:
+    fingerprints = _fingerprints(resolutions, infrastructure, domains, labels)
+    seed_periods = fingerprints.get(seed_domain)
+    if not seed_periods:
         return []
 
     results = []
-    for candidate, candidate_fp in sorted(fingerprints.items()):
+    for candidate, candidate_periods in sorted(fingerprints.items()):
         if candidate == seed_domain:
             continue
-        shared_asns = sorted(seed_fp["asns"] & candidate_fp["asns"])
-        if not shared_asns:
-            continue
-        registrar_match = bool(seed_fp["registrar"] and candidate_fp["registrar"]
-                               and seed_fp["registrar"] == candidate_fp["registrar"])
-        age_delta = abs(seed_fp["aging_days"] - candidate_fp["aging_days"])
-        age_similarity = max(0.0, 1.0 - age_delta / 365.0)
-        score = 0.5 + (0.25 if registrar_match else 0.0) + 0.25 * age_similarity
-        results.append({
-            "seed": seed,
-            "candidate": candidate,
-            "method": "fingerprint_match",
-            "evidence": {
-                "shared_hosting_asns": shared_asns,
-                "seed": {key: seed_fp[key] for key in
-                         ("first_ip_observation_start", "registrar", "registration_date", "aging_days")},
-                "candidate": {key: candidate_fp[key] for key in
-                              ("first_ip_observation_start", "registrar", "registration_date", "aging_days")},
-                "aging_basis": "registration date to earliest A/AAAA first_seen; this is the observation interval start, not an inferred activation date",
-                "registrar_match": registrar_match,
-                "aging_delta_days": age_delta,
-                "aging_similarity": round(age_similarity, 6),
-            },
-            "score": round(min(score, 1.0), 6),
-        })
+        best = None
+        for seed_fp in seed_periods:
+            for candidate_fp in candidate_periods:
+                shared_asns = sorted(seed_fp["asns"] & candidate_fp["asns"])
+                if not shared_asns:
+                    continue
+                registrar_match = bool(seed_fp["registrar"] and candidate_fp["registrar"]
+                                       and seed_fp["registrar"] == candidate_fp["registrar"])
+                age_delta = abs(seed_fp["aging_days"] - candidate_fp["aging_days"])
+                age_similarity = max(0.0, 1.0 - age_delta / 365.0)
+                score = round(0.5 + (0.25 if registrar_match else 0.0) + 0.25 * age_similarity, 6)
+                # Periods are chronological; equal scores retain the first pair.
+                if best is not None and score <= best["score"]:
+                    continue
+                fields = ("first_ip_observation_start", "registrar", "registration_date",
+                          "registration_expired", "aging_days")
+                best = {
+                    "seed": seed,
+                    "candidate": candidate,
+                    "method": "fingerprint_match",
+                    "evidence": {
+                        "shared_hosting_asns": shared_asns,
+                        "seed": {key: seed_fp[key] for key in fields},
+                        "candidate": {key: candidate_fp[key] for key in fields},
+                        "aging_basis": "registration date to earliest eligible A/AAAA observation within that period; intervals are clipped to registration boundaries",
+                        "period_policy": "all historical periods; strongest complete pair",
+                        "registrar_match": registrar_match,
+                        "aging_delta_days": age_delta,
+                        "aging_similarity": round(age_similarity, 6),
+                    },
+                    "score": score,
+                }
+        if best is not None:
+            results.append(best)
     return results
 
 

@@ -4,16 +4,19 @@
 
 Help the team maintain a five-person class project: a proof-of-concept APT infrastructure discovery tool using synthetic DNS history. Given a seed domain or IP, the planned pipeline finds related infrastructure, explains the evidence, ranks candidates, and measures accuracy against hidden ground truth.
 
-The pipeline is `simulate -> filter noise -> pivot -> score -> evaluate/demo`. Andrew has completed the domain-seed IP co-residency and NS/MX reuse baselines and is handing off further implementation to teammates. The current task is layout alignment and handoff, not a new feature milestone. Follow subsequent explicit requests without assuming ownership of the remaining work. Completing these methods is distinct from completing the shared engine.
+The pipeline is `simulate -> filter noise -> pivot -> score -> evaluate/demo`. Main includes IP co-residency, NS/MX reuse, fingerprint matching, temporal matching, evaluation, plotting, and simulation. Andrew has finalized All-DNS temporal matching with the registration-period fingerprint fix and is handing off the implementation and research evidence to teammates. Preserve the original baseline and archived hosting-only experiment. Further experiments, integration, paper writing, and slides require an explicit assignment; do not assume ownership of the remaining project.
 
 Answer scope and design questions directly. A request for analysis or agent configuration is not a request to implement the whole pipeline.
 
+Stop at the agreed milestone with documented, verified results. Do not
+automatically start another experiment or presentation work; ask for input
+when a material decision cannot be resolved from the authorized scope.
+
 ## Project references
 
-Run the CLI and tests from the repository root. The layout follows `origin/main`
-at commit `4e09f47`: implementations in `pivot/`, tests in `tests/`, datasets in
-`data/`, and the evaluation placeholder in `evaluation/evaluate.py`. Planning
-documents and method notes live in `docs/`.
+Run the CLI and tests from the repository root. Implementations are in `pivot/`,
+tests in `tests/`, datasets in `data/`, evaluation and plotting in `evaluation/`,
+and the generator in `sim/`. Planning documents and method notes live in `docs/`.
 
 Read the references relevant to the task:
 
@@ -23,6 +26,11 @@ Read the references relevant to the task:
 - [docs/proposal.md](docs/proposal.md): original research motivation and broader real-data vision. Distinguish that vision from the current implementation scope.
 - [docs/AI_overview.md](docs/AI_overview.md): proposed roles, methods, and schedule; these are not evidence that teammates agreed to a particular allocation.
 - [docs/pivot_engine_scope.md](docs/pivot_engine_scope.md): implementation recommendations and integration decisions; treat it as a guide rather than a new team contract.
+- [docs/refinement_plan.md](docs/refinement_plan.md): frozen baseline, source-review findings, and rules for a fair before/after comparison.
+- [docs/fingerprint_refinement.md](docs/fingerprint_refinement.md): completed registration-period fix, measured regressions, comparison artifacts, and reproduction commands.
+- [docs/temporal_refinement.md](docs/temporal_refinement.md): fixed A/AAAA timeline experiment, independent-world validation, reproduction, and stopping point.
+- [docs/final_handoff.md](docs/final_handoff.md): selected All-DNS implementation, verification, reusable measurements, commands, and teammate handoff.
+- [evaluation/README.md](evaluation/README.md): four-method evaluation interface and metric definitions.
 
 Apply the user's latest instructions. Preserve the shared file format; explain and coordinate any necessary contract change rather than silently changing it.
 
@@ -71,7 +79,13 @@ Domain-seed IP co-residency and NS/MX reuse are implemented. The second method's
 guide is [docs/ns_mx_reuse.md](docs/ns_mx_reuse.md), with its completion record in
 [docs/tasks/002-ns-mx-reuse.md](docs/tasks/002-ns-mx-reuse.md). Shared normalization,
 label validation, and interval helpers live in `pivot/common.py`; keep file I/O
-in `load_data.py`. IP seeds and combined ranking remain separate milestones.
+in `load_data.py`. IP seeds remain unsupported. Evaluation now includes both
+reciprocal-rank fusion and maximum-score combined rankings. Temporal matching
+currently ignores filter labels; keep that distinction explicit in comparisons.
+The selected temporal implementation uses A, AAAA, NS, and MX observations.
+Its evidence describes DNS presence, not necessarily simultaneous hosting.
+The A/AAAA-only experiment is archived and is not the current default. Read the
+final handoff guide before changing this selection or reusing experiment results.
 
 Preserve these correctness properties:
 

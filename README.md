@@ -6,6 +6,10 @@ This class proof of concept finds related infrastructure in synthetic DNS histor
 
 Candidates are investigative leads, not confirmed malicious infrastructure. Ground truth is reserved for evaluation and is never used by the pivot methods.
 
+The selected handoff uses **All-DNS temporal matching and the registration-period
+fingerprint fix**. Start with the [final handoff guide](docs/final_handoff.md)
+for verified commands, chosen results, research artifacts, and remaining team work.
+
 ## Shared layout
 
 The structure follows `origin/main` at commit `4e09f47`. The former `andrew-working/` files are integrated into the shared directories.
@@ -26,6 +30,9 @@ The structure follows `origin/main` at commit `4e09f47`. The former `andrew-work
 | `data/seed-data_with-ground-truth/` | Evaluation/simulation data; ground truth is reserved for evaluation |
 | `evaluation/evaluate.py` | Benchmarks pivot methods against ground truth |
 | `evaluation/plot_accuracy.py` | Generates comparison graphs and a CSV from evaluation results |
+| `evaluation/run_experiment.py` | Runs evaluation with source/data provenance in a fresh directory |
+| `evaluation/compare_runs.py` | Exports paired before/after CSVs and graphs from verified runs |
+| `evaluation/summarize_worlds.py` | Checks and summarizes paired temporal experiments across simulation worlds |
 | `examples/` | Explicit mock labels for method demos |
 | `output/` | Generated JSONL results and evaluation data, ignored by Git |
 | `outputs/` | Generated plots and comparison tables |
@@ -70,14 +77,14 @@ python -m unittest discover -s tests -p '*.py' -v
 
 The explicit test pattern is required because some test filenames do not start with `test`.
 
-To regenerate or check the seed data:
+Check the delivered development data:
 
 ```sh
-python sim/simulate.py
 python validate_data.py
 ```
 
-With the defaults, the output is identical to the committed data. See the [generator guide](sim/README.md) for other seeds and scenarios.
+Preserve the delivered datasets. See the [generator guide](sim/README.md) for
+creating other seeds and scenarios in separate directories.
 
 ## Run the evaluation and generate graphs
 
@@ -184,3 +191,17 @@ Replace the mock labels with actual filter output through the evaluation script'
 The evaluation stage uses ground truth to measure ranking quality, recall, and false leads. Ground truth must not be passed into the pivot methods themselves.
 
 Remaining team work includes improving and validating the pivot methods, integrating real filter labels, and refining combined ranking. Historical discovery experiments also need consistent cutoffs across observations, labels, and domain counts.
+
+The [refinement checkpoint and comparison plan](docs/refinement_plan.md) records
+the frozen `84f0340` baseline, source-review findings, measured starting results,
+and the controls needed for a valid before/after experiment.
+
+The first [fingerprint refinement report](docs/fingerprint_refinement.md)
+documents registration-period consistency, reproduction commands, and measured
+before/after results. The fix improves evidence correctness but reduces the
+no-filter ranking metrics on the saved benchmark; the report includes both
+outcomes and links the generated discussion artifacts to their source runs.
+
+The subsequent [temporal hosting-activity experiment](docs/temporal_refinement.md)
+compares A/AAAA timelines against all-DNS timelines with fixed score weights,
+including three fresh simulation worlds and a defined research stopping point.

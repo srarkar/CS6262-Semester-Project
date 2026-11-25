@@ -17,6 +17,14 @@ python3 -m evaluation.evaluate
 python3 -m unittest discover -s tests -p '*.py' -v
 ```
 
+To include the heuristic filter as a separate evaluation condition, generate
+its labels first and pass them explicitly:
+
+```sh
+python3 -m filter.classify
+python3 -m evaluation.evaluate --labels output/infra_labels.json
+```
+
 The first command takes about 45 seconds with the two methods on `main`. It
 prints a summary table per filter condition and writes to `output/eval/`
 (Git-ignored, replaced on each run).

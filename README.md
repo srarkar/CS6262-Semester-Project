@@ -15,6 +15,7 @@ The structure follows `origin/main` at commit `4e09f47`. The former `andrew-work
 | `load_data.py` | Shared JSON/JSONL reads, deterministic JSONL writes, and project configuration |
 | `sim/simulate.py` | Seed data generator; rebuilds both `data/seed-data_*` folders ([guide](sim/README.md)) |
 | `sim/actors/` | Planted APT profiles used by the generator |
+| `filter/classify.py` | Heuristic infrastructure labels and domain lifecycle features ([guide](filter/README.md)) |
 | `validate_data.py` | Checks a dataset against the data format |
 | `pivot/ip_coresidency.py` | Domain-seed temporal IP co-residency |
 | `pivot/ns_mx_reuse.py` | Domain-seed rare NS/MX reuse |
@@ -168,6 +169,20 @@ The IP score is `min(strongest_overlap_days / 30, 1)`. The NS/MX score is the st
 
 See the [IP guide](pivot/README.md) and [NS/MX guide](docs/ns_mx_reuse.md) for algorithms, callable interfaces, evidence fields, and limitations.
 
+## Run the noise filter
+
+The filter reads the dataset without ground truth and writes the shared labels
+file consumed by the pivot methods:
+
+```sh
+python3 -m filter.classify
+```
+
+Use those inferred labels in a pivot by passing `--labels output/infra_labels.json`.
+The filter is a documented heuristic baseline; it does not read ground truth
+and its confidence values are not calibrated maliciousness probabilities. See
+the [filter guide](filter/README.md) for rules and limitations.
+
 ## Handoff to teammates
 
 The evaluation script imports the four pivot methods:
@@ -179,8 +194,8 @@ The evaluation script imports the four pivot methods:
 
 The methods operate on the shared DNS observations and metadata. Use the shared loader in `load_data.py` for file I/O.
 
-Replace the mock labels with actual filter output through the evaluation script's label option when it is available. Only explicit `candidate` labels permit expansion; noise and missing labels are skipped.
+Generate heuristic labels with `python3 -m filter.classify` and pass `--labels output/infra_labels.json` to the pivot or evaluator. Only explicit `candidate` labels permit expansion; noise and missing labels are skipped.
 
 The evaluation stage uses ground truth to measure ranking quality, recall, and false leads. Ground truth must not be passed into the pivot methods themselves.
 
-Remaining team work includes improving and validating the pivot methods, integrating real filter labels, and refining combined ranking. Historical discovery experiments also need consistent cutoffs across observations, labels, and domain counts.
+Remaining team work includes evaluating and improving the filter heuristics, refining combined ranking, and applying consistent historical cutoffs across observations, labels, and domain counts.

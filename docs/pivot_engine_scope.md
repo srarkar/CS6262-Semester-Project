@@ -36,7 +36,7 @@ The shared dataset in `data/seed-data_no-ground-truth/`, relative to the reposit
 
 Inspection found 43,360 observations, 5,138 domain metadata entries, and 3,284 infrastructure entries. Of those domains, 4,551 have DNS observations. All observations reference existing domain and infrastructure metadata; the distinct-domain counts match the observed records. All raw infrastructure labels are `unknown`, as specified.
 
-The initial handoff did not contain implementation code. Tasks 001 and 002 have since added `load_data.py` and the domain-seed IP co-residency and NS/MX reuse methods; see the [project guide](../README.md). The structure now follows main's shared layout, including its empty `evaluation/evaluate.py` placeholder. Actual filter output and evaluation behavior remain integration dependencies for teammates. The data handoff alone does not establish that the complete simulator can be regenerated.
+The initial handoff did not contain implementation code. Tasks 001 and 002 added the shared loader and domain-seed IP co-residency and NS/MX reuse methods. The repository now also contains fingerprint and temporal pivots, an evaluation pipeline, and the heuristic filter in `filter/classify.py`; see the [project guide](../README.md). Filter accuracy still needs evaluation, and the data handoff alone does not establish that the complete simulator can be regenerated.
 
 Use the dataset without ground truth for engine development. Actor configuration files are simulator inputs, and `ground_truth.json` belongs exclusively to evaluation. Neither is an input to the pivot engine.
 
@@ -92,7 +92,7 @@ With an inclusive-day convention, that is 11 overlapping days. If the filter per
 ## Practical build order
 
 1. **Agree on the integration boundary.** Identify who owns `load_data.py`, who supplies filter labels and timing features, and who combines scores. Assign the methods among the pivoting contributors. Keep the existing JSON format.
-2. **Build a small domain-seed baseline.** Load records, build the two lookups, and find overlapping A/AAAA co-residency. Use a small explicit mock filter output while the real filter is unavailable. Describe that run as using mock labels.
+2. **Build a small domain-seed baseline.** Load records, build the two lookups, and find overlapping A/AAAA co-residency. The heuristic filter in `filter/classify.py` now supplies inferred labels; explicit mock labels remain useful for small controlled demos.
 3. **Produce valid results early.** Write one line per seed/candidate/method, aggregating supporting observations in its evidence. Keep separate method results for the same candidate so evaluation can compare methods.
 4. **Integrate the filter.** Consume its labels and domain timing features. Define how missing labels are handled; do not silently equate raw `unknown` with inferred `candidate`.
 5. **Complete the agreed method set and IP-seed behavior.** Add rare NS/MX reuse and fingerprint matching according to the division of work. The overall project requires IP seeds too: define how their observed domains become anchors, which time intervals apply, and how those relationships are represented in the existing output format.
